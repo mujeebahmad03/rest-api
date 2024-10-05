@@ -22,52 +22,102 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+# REST API
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+This project is a NestJS-based backend application using PostgreSQL as the database. It is containerized using Docker Compose, allowing for an easy local setup and development environment. Swagger is integrated for API documentation, making it easy to test and explore the endpoints.
 
-## Installation
+## Prerequisites
 
-```bash
-$ npm install
-```
+Make sure you have the following installed:
 
-## Running the app
+- **Docker**: [Download & Install Docker](https://docs.docker.com/get-docker/)
+- **Docker Compose**: Included with most Docker installations.
 
-```bash
-# development
-$ npm run start
+## Setting Up the Application Locally
 
-# watch mode
-$ npm run start:dev
+Follow these steps to run the app locally:
 
-# production mode
-$ npm run start:prod
-```
-
-## Test
+### 1. Clone the Repository
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+git clone <https://github.com/mujeebahmad03/rest-api.git>
+cd <rest-api>
 ```
 
-## Support
+### 2. Create a `.env` File
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+Create a `.env` file in the root directory of the project. Use the following template and update the values as needed:
 
-## Stay in touch
+```ini
+# .env file
+POSTGRES_DB=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5434/${POSTGRES_DB}?schema=public
+```
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 3. Build and Run the Application
 
-## License
+Run the following command to build and start your application:
 
-Nest is [MIT licensed](LICENSE).
+```bash
+docker-compose up --build
+```
+
+### 4. Access the Application and API Documentation
+
+- **Backend API**: The API should be running at [http://localhost:3000](http://localhost:3000).
+- **Swagger Documentation**: Access the Swagger UI at [http://localhost:3000](http://localhost:3000/swagger).
+
+### 5. Running Prisma Migrations (Optional)
+
+If you make changes to your Prisma schema (`prisma/schema.prisma`), you can run the following command to push the changes to the database:
+
+```bash
+npx prisma db push
+```
+
+## Common Commands
+
+### Stop the Application
+
+To stop all the running container, press `CTRL + C` in the terminal where `docker-compose up` is running, or use:
+
+```bash
+docker-compose down
+```
+
+### Rebuild the Application
+
+If you make changes to the code or dependencies, you may need to rebuild the containers:
+
+```bash
+docker-compose up --build
+```
+
+## Troubleshooting
+
+### 1. **Database Connection Error**
+
+If you see an error related to the database connection (`P1001: Can't reach database server at db:5432`), it could be because the PostgreSQL service hasn't fully started. Try the following:
+
+1. Stop the db container:
+
+    ```bash
+    docker-compose down
+    ```
+
+2. Start db container again:
+
+    ```bash
+    docker-compose up --build
+    ```
+
+3. Alternatively, wait a few seconds and try the `docker-compose up` command again.
+
+### 2. **Swagger Not Loading**
+
+If you encounter issues accessing Swagger at `http://localhost:3000/swagger`:
+
+- Ensure the application is running without errors.
+- Check the NestJS configuration to confirm that Swagger is enabled and set up correctly.
