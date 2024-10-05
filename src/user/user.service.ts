@@ -1,26 +1,61 @@
 import { Injectable } from '@nestjs/common';
+import * as argon from 'argon2';
+
 import { PrismaService } from '../prisma/prisma.service';
 import { ResponseHelperService } from 'src/helper/response-helper.service';
 import { ResponseModel } from 'src/models/global.model';
-import { User } from '@prisma/client';
-import { RequestSchema } from 'src/types/request.schema';
-import { EditUserDto } from './dto';
+import { CreateUserDto, EditUserDto } from './dto';
+import { UserProfileResponseModel } from 'src/models/user-profile.model';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private userSingleResponseHelper: ResponseHelperService<User>,
-    private adminSingleResponseHelper: ResponseHelperService<User>,
-    private adminMultiResponseHelper: ResponseHelperService<User[]>,
+    private userSingleResponseHelper: ResponseHelperService<UserProfileResponseModel>,
   ) {}
 
-  async getUser(req: RequestSchema): Promise<ResponseModel<User>> {
-    const { userId } = req;
+  async createUser(
+    userDto: CreateUserDto,
+  ): Promise<ResponseModel<UserProfileResponseModel>> {
+    const { name, email, password } = userDto;
 
+    const userProfile = await this.prisma.user.findFirst({
+      where: {
+        email: {
+          mode: 'insensitive',
+          equals: email,
+        },
+      },
+    });
+
+    if (userProfile) {
+      this.userSingleResponseHelper.returnConflict('User with email exists');
+    }
+
+    // generate the password hash
+    const hash = await argon.hash(password);
+
+    // Create new user without businessId
+    const user = await this.prisma.user.create({
+      data: {
+        name,
+        email,
+        hashPassword: hash,
+      },
+    });
+
+    delete user.hashPassword;
+
+    return this.userSingleResponseHelper.returnSuccessObject(
+      'User created successfully',
+      user,
+    );
+  }
+
+  async getUser(id: string): Promise<ResponseModel<UserProfileResponseModel>> {
     const user = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id,
       },
     });
 
@@ -28,51 +63,21 @@ export class UserService {
       this.userSingleResponseHelper.returnNotFound('User not found');
     }
 
+    delete user.hashPassword;
+
     return this.userSingleResponseHelper.returnSuccessObject(
       'User fetched successfully',
       user,
     );
   }
 
-  async getAllUsers(): Promise<ResponseModel<User[]>> {
-    const users = await this.prisma.user.findMany();
-
-    if (users.length === 0) {
-      this.adminSingleResponseHelper.returnNotFound('No user found');
-    }
-
-    return this.adminMultiResponseHelper.returnSuccessObject(
-      'Users fetched successfully',
-      users,
-    );
-  }
-
-  async getUserById(userId: string): Promise<ResponseModel<User>> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      this.adminSingleResponseHelper.returnNotFound('User not found');
-    }
-
-    return this.adminSingleResponseHelper.returnSuccessObject(
-      'User fetched successfully',
-      user,
-    );
-  }
-
   async editUser(
-    req: RequestSchema,
+    id: string,
     dto: EditUserDto,
-  ): Promise<ResponseModel<User>> {
-    const { userId } = req;
-
+  ): Promise<ResponseModel<UserProfileResponseModel>> {
     const existingUser = await this.prisma.user.findUnique({
       where: {
-        id: userId,
+        id,
       },
     });
 
@@ -82,38 +87,18 @@ export class UserService {
 
     const user = await this.prisma.user.update({
       where: {
-        id: userId,
+        id,
       },
       data: {
         ...dto,
       },
     });
 
+    delete user.hashPassword;
+
     return this.userSingleResponseHelper.returnSuccessObject(
       'User updated successfully',
       user,
-    );
-  }
-
-  async deleteUser(userId: string): Promise<ResponseModel<User>> {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-
-    if (!user) {
-      this.adminSingleResponseHelper.returnNotFound('User not found');
-    }
-
-    await this.prisma.user.delete({
-      where: {
-        id: userId,
-      },
-    });
-
-    return this.adminSingleResponseHelper.returnSuccessObject(
-      'User deleted successfully',
     );
   }
 }
