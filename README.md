@@ -67,7 +67,7 @@ docker-compose up --build
 ### 4. Access the Application and API Documentation
 
 - **Backend API**: The API should be running at [http://localhost:3000](http://localhost:3000).
-- **Swagger Documentation**: Access the Swagger UI at [http://localhost:3000](http://localhost:3000/swagger).
+- **Swagger Documentation**: Access the Swagger UI at [http://localhost:3000/swagger](http://localhost:3000/swagger).
 
 ### 5. Running Prisma Migrations (Optional)
 
