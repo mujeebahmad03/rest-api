@@ -56,13 +56,19 @@ POSTGRES_PASSWORD=
 DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:5434/${POSTGRES_DB}?schema=public
 ```
 
-### 3. Build and Run the Application
+3. **Run docker and prisma servers. Check package.json scripts:**
+    ```bash
+    docker-compose up --build
+    ```
 
-Run the following command to build and start your application:
+4. **Run the server:**
+    ```bash
+    # development
+    $ npm run start
 
-```bash
-docker-compose up --build
-```
+    # watch mode
+    $ npm run start:dev
+    ```
 
 ### 4. Access the Application and API Documentation
 
